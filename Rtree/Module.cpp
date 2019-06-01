@@ -7,31 +7,19 @@
 using namespace std;
 
 const map<char, unsigned int> MathExpression::operators_pri = MathExpression::create_map();
-/*
-const map<char, unsigned int> MathExpression::operators_pri = {
-	{'(', 0},
-	{')', 0},
-	{'+', '2'},
-	{'-', 3},
-	{'*', 4},
-	{'/', 4},
-	{'^', 5},
-};*/
 
 string MathExpression::get_expression(string str) {
 	string output;
 	stack<char> operators;
 
 	for (unsigned int i = 0, len =str.size(); i < len; i++) {
-		//cout << "Current: " << str[i] << endl;
+	
 		if (this->is_delimiter(str[i])) { 
-			//cout << "Delimiter";
 			continue; 
 		}
 
 		if (isdigit(str[i])) {
 			string number;
-			//cout << "Number";
 
 			while (isdigit(str[i])) {
 				number += str[i];
@@ -40,15 +28,13 @@ string MathExpression::get_expression(string str) {
 				if (i == len) break;
 			}
 
-			//cout << " " << number << " " << endl;
-
 			i--;
 			output += number + ' ';
 			continue;
 		}
 
 		if (this->is_operator(str[i])) {
-			//cout << "operator" << endl;
+			
 			if (str[i] == '(') {
 				operators.push(str[i]);
 			}
@@ -86,23 +72,16 @@ string MathExpression::get_expression(string str) {
 float MathExpression::postfix_calc(string str) {
 	stack<float> temp;
 
-	//cout << "Input: " << str << endl;
-
 	for (unsigned int i = 0, len = str.size(); i < len; i++) {
-		//cout << len << endl;
-
-		//cout << str[i];
+		
 		if (isdigit(str[i])) {
 			string number;
-			//cout << "Number: ";
 
 			while (isdigit(str[i])) {
-				//cout << "digit ";
 				number += str[i];
 				i++;
 
 				if (i == len) {
-					cout << "len";
 					break;
 				}
 			}
@@ -114,7 +93,6 @@ float MathExpression::postfix_calc(string str) {
 			continue;
 		}
 		else if (this->is_operator(str[i])) {
-			//cout << "operator: " << str[i] << " ";
 
 			float a = temp.top(); temp.pop();
 			float b = temp.top(); temp.pop();

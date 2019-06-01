@@ -44,20 +44,9 @@ private: static const map<char, unsigned int> operators_pri;
 
 				cout << "Result: " << result << endl;
 
-				//return result;
-				return 8;
+				return result;
 			};
 
 			string get_expression(string str);
 			float postfix_calc(string str);
 };
-
-/* map<string, unsigned int> MathExpression::operators_pri = {
-	{'(', 0},
-	{')', 0},
-	{'+', '2'},
-	{'-', 3},
-	{'*', 4},
-	{'/', 4},
-	{'^', 5},
-}; */
