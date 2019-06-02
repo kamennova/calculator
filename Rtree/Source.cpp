@@ -12,7 +12,12 @@ int main() {
 	getline(cin, exp);
 
 	MathExpression calculator;
-	calculator.calculate(exp);
+	cout << "Infix: " << calculator.get_prefix_str(exp) << endl;
+
+	//SyntaxTree my_tree;
+	//my_tree.build(exp);
+
+	//calculator.calculate(exp);
 
 	system("pause");
 
