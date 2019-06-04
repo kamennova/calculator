@@ -87,6 +87,7 @@ string MathExpression::get_prefix_str(string str) {
 	MathExpression::reverse_exp(str);
 
 	string post = MathExpression::get_postfix_str(str);
+	cout << post << endl;
 	reverse(post.begin(), post.end());
 
 	return post;
@@ -197,7 +198,7 @@ void SyntaxTree::insert_val(string var) {
 	if (!is_left && this->curr->parent != NULL) {
 		SyntaxNode * temp = this->curr->parent;
 
-		while (temp->has_both_children()) {
+		while (temp != NULL && temp->has_both_children()) {
 			temp = temp->parent;
 		}
 
@@ -225,6 +226,8 @@ void SyntaxTree::optimize() {
 }
 
 void SyntaxNode::optimize_search() {
+	if (this == NULL) return;
+
 	if (!this->has_left_child()) { // reached leaf node
 		this->optimize_step();
 	}
@@ -279,7 +282,7 @@ void SyntaxNode::set_to_num(string num = "0") {
 	this->right = NULL;
 	this->data = num;
 
-	this->parent->optimize_step();
+	this->optimize_step();
 }
 
 void SyntaxNode::replace_self(bool is_left) {
