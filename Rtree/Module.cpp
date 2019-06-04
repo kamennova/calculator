@@ -21,11 +21,9 @@ string MathExpression::get_postfix_str(string str) {
 		if (isdigit(str[i])) {
 			string number;
 
-			while (isdigit(str[i])) {
+			while (isdigit(str[i]) && i < len) {
 				number += str[i];
 				i++;
-
-				if (i == len) break;
 			}
 
 			i--;
@@ -44,7 +42,8 @@ string MathExpression::get_postfix_str(string str) {
 				operators.pop();
 
 				while (out != '(') {
-					output += out << ' ';
+					output += out;
+					output += ' ';
 					out = operators.top();
 					operators.pop();
 				}
@@ -52,7 +51,8 @@ string MathExpression::get_postfix_str(string str) {
 			else {
 				if (operators.size() > 0 &&
 					MathExpression::get_priority(str[i]) <= MathExpression::get_priority(operators.top())) {
-					output += operators.top() << ' ';
+					output += operators.top();
+					output += ' ';
 					operators.pop();
 				}
 
@@ -62,7 +62,8 @@ string MathExpression::get_postfix_str(string str) {
 	}
 
 	while (!operators.empty()) {
-		output += operators.top() << ' ';
+		output += operators.top();
+		output += ' ';
 		operators.pop();
 	}
 
@@ -159,9 +160,11 @@ float MathExpression::calc(string oper, float a, float b) {
 //---
 
 void SyntaxTree::build(string exp) {
-	this->root->data = exp[0];
 
-	for (unsigned int i = 1, len = exp.size(); i < len; i++) {
+	unsigned int start = MathExpression::is_delimiter(exp[0]) ? 1 : 0;
+	this->root->data = exp[start];
+
+	for (unsigned int i = start+1, len = exp.size(); i < len; i++) {
 		if (MathExpression::is_delimiter(exp[i])) {
 			continue;
 		}
@@ -176,13 +179,13 @@ void SyntaxTree::build(string exp) {
 
 			while (i < len && !MathExpression::is_delimiter(exp[i])) {
 				val += exp[i];
+				i++;
 			}
+			i--;
 
 			this->insert_val(val);
 		}
 	}
-
-	this->calc();
 }
 
 // insert as child in current node, if is right child, move up until operator node lacks 1 child
@@ -217,15 +220,87 @@ float SyntaxTree::calc() {
 	return res;
 }
 
+void SyntaxTree::optimize() {
+	this->root->optimize_search();
+}
+
+void SyntaxNode::optimize_search() {
+	if (!this->has_left_child()) { // reached leaf node
+		this->optimize_step();
+	}
+	else {
+		this->left->optimize_search();
+		this->right->optimize_search();
+	}
+}
+
+// optimization cases: * 0, + 0, - 0, 0^, ^0, * 1, / 1, 1^, ^1
+void SyntaxNode::optimize_step() {
+	bool is_left = this->is_left_child();
+
+	if (this->data == "0") {
+		if (this->parent->data == "*" || this->parent->data == "/") {
+			this->parent->set_to_num("0");
+		}
+		else if (this->parent->data == "+") {
+			this->parent->replace_self(!is_left); // replace parent with other child
+		}
+		else if (this->parent->data == "-") {
+			if (!is_left) {
+				this->parent->replace_self(!is_left);
+			}
+		}
+		else if (this->parent->data == "^" ) {
+			if (is_left) {
+				this->parent->replace_self(is_left);
+			}
+			else {
+				this->parent->set_to_num("1");
+			}
+		}
+	}
+	else if (this->data == "1") {
+		if (this->parent->data == "*" || (this->parent->data == "/" && !is_left)) {
+			this->parent->replace_self(!is_left);
+		}
+		else if (this->parent->data == "^") {
+			//if (is_left) {
+				this->parent->replace_self(true);
+			//}
+			//else {
+				//this->parent->replace_self(!is)
+			//}
+		}
+	}	
+}
+
+void SyntaxNode::set_to_num(string num = "0") {
+	this->left = NULL;
+	this->right = NULL;
+	this->data = num;
+
+	this->parent->optimize_step();
+}
+
+void SyntaxNode::replace_self(bool is_left) {
+	SyntaxNode * child = is_left ? this->left : this->right;
+
+	this->data = child->data;
+	this->left = child->left;
+	this->right = child->right;
+
+	child = NULL;
+}
+
+//---
+
 float SyntaxNode::calc_step() {
 	if (this->has_left_child()) {
 		return MathExpression::calc(this->data, this->left->calc_step(), this->right->calc_step());
 	}
-	
+
 	return stoi(this->data);
 }
-
-//---
 
 bool SyntaxNode::is_left_child() {
 	return (this->parent == NULL) || (this == this->parent->left);

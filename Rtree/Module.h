@@ -57,31 +57,34 @@ private: static const map<char, unsigned int> operators_pri;
 
 class SyntaxNode {
 public: string data;
-		SyntaxNode *left;
-		SyntaxNode 	*right;
-		SyntaxNode *parent;
+		SyntaxNode* left;
+		SyntaxNode* right;
+		SyntaxNode* parent;
 
-		SyntaxNode(string n_data = NULL, SyntaxNode * n_parent = NULL, SyntaxNode *n_left = NULL, SyntaxNode *n_right = NULL) {
+		SyntaxNode(string n_data = "", SyntaxNode * n_parent = NULL, SyntaxNode *n_left = NULL, SyntaxNode *n_right = NULL) {
 			 left = n_left;
 			 right = n_right;
 			 data = n_data;
 			 parent = n_parent;
 		 };
 
-		SyntaxNode * insert_child(bool is_left, string data);
+		SyntaxNode* insert_child(bool is_left, string data);
 		 bool is_left_child();
 		 bool has_both_children();
 		 bool has_left_child();
 		 float calc_step();
+		 void optimize_step();
+		 void set_to_num(string num);
+		 void replace_self(bool is_left);
+		 void optimize_search();
 };
 
 class SyntaxTree {
-	public:	SyntaxNode * root,
-					*curr;
+	public:	SyntaxNode* root,
+					* curr;
 
 		SyntaxTree() {
-			SyntaxNode * temp;
-			temp = new SyntaxNode;
+			SyntaxNode* temp = new SyntaxNode();
 			this->root = temp;
 			curr = root;
 		};
@@ -90,4 +93,5 @@ class SyntaxTree {
 		void insert_operator(char op);
 		void insert_val(string var);
 		float calc();
+		void optimize();
 };
