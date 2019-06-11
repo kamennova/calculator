@@ -18,20 +18,17 @@ string MathExpression::get_postfix_str(string str) {
 			continue; 
 		}
 
-		if (isdigit(str[i])) {
+		if (isdigit(str[i]) || isalpha(str[i])) { // variable name or number
 			string number;
 
-			while (isdigit(str[i]) && i < len) {
+			while ((isdigit(str[i]) || isalpha(str[i])) && i < len) {
 				number += str[i];
 				i++;
 			}
 
 			i--;
 			output += number + ' ';
-			continue;
-		}
-
-		if (MathExpression::is_operator(str[i])) {
+		} else if (MathExpression::is_operator(str[i])) {
 			
 			if (str[i] == '(') {
 				operators.push(str[i]);
@@ -69,7 +66,7 @@ string MathExpression::get_postfix_str(string str) {
 
 	return output;
 } 
-
+/*
 void MathExpression::reverse_exp(string &str) {
 	reverse(str.begin(), str.end());
 
@@ -81,14 +78,53 @@ void MathExpression::reverse_exp(string &str) {
 			str[i] = '(';
 		}
 	}
+}*/
+
+string MathExpression::reverse_exp(string line) {
+	string reversed, 
+		var_name;
+
+	for (int i = line.size() - 1; i >= 0; i--) {
+		if (isalpha(line[i])) {
+			while (i >= 0 && (isalpha(line[i]))) {
+				var_name += line[i];
+				i--;
+			}
+
+			i++;
+			reverse(var_name.begin(), var_name.end());
+			reversed += var_name;
+			var_name.erase();
+		} else if (isdigit(line[i])) {
+			while (i >= 0 && (isdigit(line[i]) || line[i] == ',' || line[i] == '.')) {
+				var_name += line[i];
+				i--;
+			}
+
+			i++;
+			reverse(var_name.begin(), var_name.end());
+			reversed += var_name;
+			var_name.erase();
+		}
+		else if (line[i] == '(') {
+			reversed += ')';
+		}
+		else if (line[i] == ')') {
+			reversed += '(';
+		}
+		else {
+			reversed += line[i];
+		}
+	}
+
+	return reversed;
 }
 
 string MathExpression::get_prefix_str(string str) {
-	MathExpression::reverse_exp(str);
+	string reversed = MathExpression::reverse_exp(str);
 
-	string post = MathExpression::get_postfix_str(str);
-	cout << post << endl;
-	reverse(post.begin(), post.end());
+	string post = MathExpression::get_postfix_str(reversed);
+	post = MathExpression::reverse_exp(post);
 
 	return post;
 } 
@@ -101,13 +137,9 @@ float MathExpression::postfix_calc(string str) {
 		if (isdigit(str[i])) {
 			string number;
 
-			while (isdigit(str[i])) {
+			while (isdigit(str[i]) && i < len) {
 				number += str[i];
 				i++;
-
-				if (i == len) {
-					break;
-				}
 			}
 
 			cout << number << endl;
@@ -145,15 +177,25 @@ float MathExpression::postfix_calc(string str) {
 	return temp.top();
 }
 
-float MathExpression::calc(string oper, float a, float b) {
+float SyntaxTree::get_val(string a) {
+	return 7.0;
+	//return isdigit(a[0]) ? stof(a) : this->exp->var_map.find(a)->second;
+}
+
+string MathExpression::calc(string oper, string a, string b) {
 	char oper_char = oper[0];
+	float a_val,
+		b_val;
+
+	a_val = isdigit(a[0]) ? stof(a) : this->var_map.find(a)->second;
+	b_val = isdigit(b[0]) ? stof(b) : this->var_map.find(b)->second;
 
 	switch (oper_char) {
-	case '+': return a + b;
-	case '-': return a - b; 
-	case '*': return a * b;
-	case '/': return a / b; 
-	case '^': return pow(a, b);
+	case '+': return to_string(a_val + b_val);
+	case '-': return to_string(a_val - b_val);
+	case '*': return to_string(a_val * b_val);
+	case '/': return to_string(a_val / b_val);
+	case '^': return to_string(pow(a_val, b_val));
 	default: return 0;
 	}
 }
@@ -214,11 +256,8 @@ void SyntaxTree::insert_operator(char op) {
 	this->curr = this->curr->insert_child(is_left , data);
 };
 
-float SyntaxTree::calc() {
-	float res = this->root->calc_step();
-	cout << "Result: " << res << endl;
-
-	return res;
+float SyntaxTree::calc(MathExpression *exp) {
+	return stof(this->root->calc_step(exp));
 }
 
 void SyntaxTree::optimize() {
@@ -243,31 +282,38 @@ void SyntaxNode::optimize_step() {
 
 	if (this->data == "0") {
 		if (this->parent->data == "*" || this->parent->data == "/") {
+			cout << "Optimizaton case 0* or 0/ \n";
 			this->parent->set_to_num("0");
 		}
 		else if (this->parent->data == "+") {
+			cout << "Optimizaton case + 0 \n";
 			this->parent->replace_self(!is_left); // replace parent with other child
 		}
 		else if (this->parent->data == "-") {
 			if (!is_left) {
+				cout << "Optimizaton case x-0 = x \n";
 				this->parent->replace_self(!is_left);
 			}
 		}
 		else if (this->parent->data == "^" ) {
 			if (is_left) {
+				cout << "Optimizaton case 0^x = 0 \n";
 				this->parent->replace_self(is_left);
 			}
 			else {
+				cout << "Optimizaton case x^0 = 0 \n";
 				this->parent->set_to_num("1");
 			}
 		}
 	}
 	else if (this->data == "1") {
 		if (this->parent->data == "*" || (this->parent->data == "/" && !is_left)) {
+			cout << "Optimizaton case 1*x or x/1 = x \n";
 			this->parent->replace_self(!is_left);
 		}
 		else if (this->parent->data == "^") {
 			//if (is_left) {
+			cout << "Optimizaton case 1^x = 1 or x^1 = x \n";
 				this->parent->replace_self(true);
 			//}
 			//else {
@@ -297,12 +343,12 @@ void SyntaxNode::replace_self(bool is_left) {
 
 //---
 
-float SyntaxNode::calc_step() {
+string SyntaxNode::calc_step(MathExpression* exp) {
 	if (this->has_left_child()) {
-		return MathExpression::calc(this->data, this->left->calc_step(), this->right->calc_step());
+		return exp->calc(this->data, this->left->calc_step(exp), this->right->calc_step(exp));
 	}
 
-	return stoi(this->data);
+	return this->data;
 }
 
 bool SyntaxNode::is_left_child() {
@@ -328,4 +374,105 @@ SyntaxNode * SyntaxNode::insert_child(bool is_left, string data) {
 	}
 
 	return child;
+}
+
+//---
+
+/* Read all lines, if line is simple expression (a = 7;), add to variables map
+ else if var involves other variables save as string
+use all variables in last line, build syntax tree with last line
+ */
+string FileReader::get_exp(string filename, MathExpression * exp) {
+	ifstream inFile(filename);
+	string line,
+		prev,
+		var_name,
+		value;
+		
+	bool is_simple;
+
+	getline(inFile, prev);
+
+	while (!inFile.eof()) {
+		getline(inFile, line);
+
+		var_name = this->get_var(prev, value, is_simple);
+
+		if (is_simple) {
+			exp->var_map[var_name] = stof(value);
+		}
+		else {
+			exp->var_exp_map[var_name] = value;
+		}
+
+		value.erase();
+		prev = line;
+	}
+
+	cout << "Calculating " << line << "..." << endl;
+
+	return this->get_exp_str(line, exp);
+}
+
+string FileReader::get_var(string line, string &val_str, bool &is_simple) {
+	string  var_name;
+	unsigned int i = 0,
+		len = line.size();
+	is_simple = true;
+
+	// getting variable name
+	while (i < len && !MathExpression::is_delimiter(line[i])) {
+		var_name += line[i];
+		i++;
+	}
+
+	i++;
+
+	if (line[i] == '=') {
+		while (i < len - 1) {
+			if (MathExpression::is_delimiter(line[i])) {
+				i++;
+				continue;
+			}
+
+			if (!isdigit(line[i]) && !(line[i] == ',' || line[i] == '.')) { // expression contains other variables
+				is_simple = false;
+			}
+
+			val_str += line[i];
+			i++;
+		}
+	}
+
+	return var_name;
+}
+
+string FileReader::get_exp_str(string line, MathExpression* exp) {
+	string exp_str,
+		var_name;
+
+	for (unsigned int i = 0, len = line.size(); i < len - 1; i++) {
+
+		if (isalpha(line[i])) {
+			while (isalpha(line[i]) && i < len-1) {
+				var_name += line[i];
+				i++;
+			}
+			i--;
+
+			if (exp->var_exp_map.find(var_name) != exp->var_exp_map.end()) {
+				exp_str += '(' + exp->var_exp_map.find(var_name)->second + ')';
+			}
+			else {
+				exp_str += var_name;
+			}
+
+			var_name.erase();
+		}
+		else {
+			exp_str += line[i];
+		}
+	}
+
+	return exp_str;
 }

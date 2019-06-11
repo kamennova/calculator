@@ -4,22 +4,21 @@
 
 using namespace std;
 
+const string FILENAME = "file.txt";
+
 int main() {
 	string exp;
 
-	cout << "Enter math expression: ";
-	getline(cin, exp);
+	MathExpression* expression = new MathExpression;
+	FileReader my_reader;
 
-	MathExpression calculator;
-	string prefix = calculator.get_prefix_str(exp);
-	cout << "Infix: " << prefix << endl;
-
-	SyntaxTree my_tree;
-	my_tree.build(prefix);
-	my_tree.optimize();
-	my_tree.calc();
-
+	string exp_str = my_reader.get_exp(FILENAME, expression);	
+	expression->calculate(exp_str); 
 	system("pause");
 
 	return 1;
 }
+
+/*p = 3^bc + 4*5 - a;
+q = a+a-0*65+bc*2;
+p+q;*/
