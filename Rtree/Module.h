@@ -31,6 +31,7 @@ public: string data;
 		void optimize_step();
 		void set_to_num(string num);
 		void replace_self(bool is_left);
+		void replace_self_level2(bool is_left, bool level2_is_left);
 		void optimize_search();
 };
 
@@ -60,6 +61,8 @@ private: static const map<char, unsigned int> operators_pri;
 
 			 m['('] = 0;
 			 m[')'] = 0;
+			 m['?'] = 3;
+			 m[':'] = 3;
 			 m['+'] = 2;
 			 m['-'] = 3;
 			 m['*'] = 4;
@@ -93,7 +96,7 @@ private: static const map<char, unsigned int> operators_pri;
 
 				SyntaxTree my_tree;
 				my_tree.build(prefix);
-				my_tree.optimize();
+				//my_tree.optimize();
 
 				result = my_tree.calc(this);
 				cout << "Result: " << result << endl;
@@ -107,6 +110,7 @@ private: static const map<char, unsigned int> operators_pri;
 			static string get_prefix_str(string str);
 			static string get_postfix_str(string str);
 			float postfix_calc(string str);
+			float get_val(string var);
 };
 
 class FileReader {

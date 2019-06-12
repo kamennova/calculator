@@ -164,10 +164,16 @@ float MathExpression::postfix_calc(string str) {
 	return temp.top();
 }
 
+float MathExpression::get_val(string var) {
+	return isdigit(var[0]) ? stof(var) : 
+		this->var_map.find(var)->second;
+}
+
 string MathExpression::calc(string oper, string a, string b) {
 	char oper_char = oper[0];
 	float a_val,
-		b_val;
+		b_val,
+		if_val;
 
 	a_val = isdigit(a[0]) ? stof(a) : this->var_map.find(a)->second;
 	b_val = isdigit(b[0]) ? stof(b) : this->var_map.find(b)->second;
@@ -287,6 +293,9 @@ void SyntaxNode::optimize_step() {
 				this->parent->set_to_num("1");
 			}
 		}
+		else if (this->parent->data == "?") {
+			this->parent->replace_self_level2(false, false);
+		}
 	}
 	else if (this->data == "1") {
 		if (this->parent->data == "*" || (this->parent->data == "/" && !is_left)) {
@@ -316,12 +325,38 @@ void SyntaxNode::replace_self(bool is_left) {
 	this->right = child->right;
 
 	child = NULL;
+	this->optimize_step();
+}
+
+void SyntaxNode::replace_self_level2(bool is_left, bool level2_is_left) {
+	SyntaxNode * child = is_left ? this->left : this->right;
+	child = level2_is_left ? child->left : child->right;
+
+	this->data = child->data;
+	this->left = child->left;
+	this->right = child->right;
+
+	child->parent = NULL;
+	if (level2_is_left) { child->parent->right = NULL; }
+	else {
+		child->parent->left = NULL;
+	}
+	child = NULL;
 }
 
 //---
 
 string SyntaxNode::calc_step(MathExpression* exp) {
-	if (this->has_left_child()) {
+	if (this->data == "?") {
+		cout << this->left->data << endl;
+		//if(MathExpression::is_operator(this->left))
+
+		if (exp->get_val(this->left->calc_step(exp)) == 0) {
+			return this->right->right->calc_step(exp);
+		}
+
+		return  this->right->left->calc_step(exp);
+	} else if (this->has_left_child()) {
 		return exp->calc(this->data, this->left->calc_step(exp), this->right->calc_step(exp));
 	}
 
@@ -412,7 +447,7 @@ string FileReader::get_var(string line, string &val_str, bool &is_simple) {
 				continue;
 			}
 
-			if (!isdigit(line[i]) && !(line[i] == ',' || line[i] == '.')) { // expression contains other variables
+			if (!isdigit(line[i]) && !(line[i] == ',' || line[i] == '.')) { // expression contains other variables or operators
 				is_simple = false;
 			}
 
