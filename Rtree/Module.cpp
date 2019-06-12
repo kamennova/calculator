@@ -129,8 +129,6 @@ float MathExpression::postfix_calc(string str) {
 				i++;
 			}
 
-			cout << number << endl;
-
 			i--;
 			temp.push(stoi(number));
 			continue;
@@ -139,8 +137,6 @@ float MathExpression::postfix_calc(string str) {
 
 			float a = temp.top(); temp.pop();
 			float b = temp.top(); temp.pop();
-
-			cout << a << " " << b << endl;
 
 			float res = 0;
 
@@ -293,9 +289,6 @@ void SyntaxNode::optimize_step() {
 				this->parent->set_to_num("1");
 			}
 		}
-		else if (this->parent->data == "?") {
-			this->parent->replace_self_level2(false, false);
-		}
 	}
 	else if (this->data == "1") {
 		if (this->parent->data == "*" || (this->parent->data == "/" && !is_left)) {
@@ -348,9 +341,6 @@ void SyntaxNode::replace_self_level2(bool is_left, bool level2_is_left) {
 
 string SyntaxNode::calc_step(MathExpression* exp) {
 	if (this->data == "?") {
-		cout << this->left->data << endl;
-		//if(MathExpression::is_operator(this->left))
-
 		if (exp->get_val(this->left->calc_step(exp)) == 0) {
 			return this->right->right->calc_step(exp);
 		}
@@ -459,6 +449,36 @@ string FileReader::get_var(string line, string &val_str, bool &is_simple) {
 	return var_name;
 }
 
+string FileReader::get_var_str(string line, MathExpression* exp) {
+	string var_name,
+		exp_str;
+
+	for (unsigned int i = 0, len = line.size(); i < len; i++) {
+
+		if (isalpha(line[i])) {
+			while (isalpha(line[i]) && i < len) {
+				var_name += line[i];
+				i++;
+			}
+			i--;
+
+			if (exp->var_exp_map.find(var_name) != exp->var_exp_map.end()) {
+				exp_str += '(' + this->get_var_str(exp->var_exp_map.find(var_name)->second, exp) + ')';
+			}
+			else {
+				exp_str += var_name;
+			}
+
+			var_name.erase();
+		}
+		else {
+			exp_str += line[i];
+		}
+	}
+	
+		return exp_str;
+}
+
 string FileReader::get_exp_str(string line, MathExpression* exp) {
 	string exp_str,
 		var_name;
@@ -473,7 +493,7 @@ string FileReader::get_exp_str(string line, MathExpression* exp) {
 			i--;
 
 			if (exp->var_exp_map.find(var_name) != exp->var_exp_map.end()) {
-				exp_str += '(' + exp->var_exp_map.find(var_name)->second + ')';
+				exp_str += '(' + get_var_str(exp->var_exp_map.find(var_name)->second, exp) + ')';
 			}
 			else {
 				exp_str += var_name;

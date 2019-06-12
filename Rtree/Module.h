@@ -96,7 +96,7 @@ private: static const map<char, unsigned int> operators_pri;
 
 				SyntaxTree my_tree;
 				my_tree.build(prefix);
-				//my_tree.optimize();
+				my_tree.optimize();
 
 				result = my_tree.calc(this);
 				cout << "Result: " << result << endl;
@@ -119,4 +119,5 @@ public:
 		string get_exp(string filename, MathExpression * exp);
 		string get_var(string line, string &val_str, bool &is_simple);
 		string get_exp_str(string line, MathExpression* exp);
+		string get_var_str(string line, MathExpression* exp);
 };
