@@ -48,7 +48,6 @@ public:	SyntaxNode* root,
 		void insert_operator(char op);
 		void insert_val(string var);
 		float calc(MathExpression* exp);
-		float get_val(string a);
 		void optimize();
 };
 
@@ -75,9 +74,6 @@ private: static const map<char, unsigned int> operators_pri;
 			 }
 
 		public:
-			MathExpression() {
-				//SyntaxTree(this) tree;
-			};
 
 			map<string, float> var_map;
 			map<string, string> var_exp_map;
@@ -114,9 +110,7 @@ private: static const map<char, unsigned int> operators_pri;
 };
 
 class FileReader {
-public: FileReader() {
-				};
-
+public: 
 		// returns expression
 		string get_exp(string filename, MathExpression * exp);
 		string get_var(string line, string &val_str, bool &is_simple);

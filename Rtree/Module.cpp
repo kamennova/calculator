@@ -66,19 +66,6 @@ string MathExpression::get_postfix_str(string str) {
 
 	return output;
 } 
-/*
-void MathExpression::reverse_exp(string &str) {
-	reverse(str.begin(), str.end());
-
-	for (unsigned int i = 0, len = str.size(); i < len; i++) {
-		if (str[i] == '(') {
-			str[i] = ')';
-		}
-		else if (str[i] == ')') {
-			str[i] = '(';
-		}
-	}
-}*/
 
 string MathExpression::reverse_exp(string line) {
 	string reversed, 
@@ -175,11 +162,6 @@ float MathExpression::postfix_calc(string str) {
 	}
 
 	return temp.top();
-}
-
-float SyntaxTree::get_val(string a) {
-	return 7.0;
-	//return isdigit(a[0]) ? stof(a) : this->exp->var_map.find(a)->second;
 }
 
 string MathExpression::calc(string oper, string a, string b) {
@@ -312,13 +294,8 @@ void SyntaxNode::optimize_step() {
 			this->parent->replace_self(!is_left);
 		}
 		else if (this->parent->data == "^") {
-			//if (is_left) {
 			cout << "Optimizaton case 1^x = 1 or x^1 = x \n";
 				this->parent->replace_self(true);
-			//}
-			//else {
-				//this->parent->replace_self(!is)
-			//}
 		}
 	}	
 }

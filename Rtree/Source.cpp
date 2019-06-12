@@ -18,7 +18,3 @@ int main() {
 
 	return 1;
 }
-
-/*p = 3^bc + 4*5 - a;
-q = a+a-0*65+bc*2;
-p+q;*/

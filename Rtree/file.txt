@@ -1,5 +1,6 @@
-a = 8;
+a = 9;
+getthereveryfastindeed = 4;
 bc = 4;
-p = 3^bc + 4*5 - a;
-q = a+a-0*65+bc*2;
-p*q;
+p = 3^a + 4*a - a + getthereveryfastindeed;
+q = a+a^1-0*65+bc*2;
+p*q+p;
